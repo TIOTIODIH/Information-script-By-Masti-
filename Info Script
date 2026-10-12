@@ -1,0 +1,145 @@
+local P,T,U,W,M=game:GetService("Players"),game:GetService("TweenService"),game:GetService("UserInputService"),game:GetService("Workspace"),game:GetService("MarketplaceService")
+local lp,pg=P.LocalPlayer,P.LocalPlayer:WaitForChild("PlayerGui")
+if pg:FindFirstChild("TKCSquareUI") then pg.TKCSquareUI:Destroy() end
+
+local sg=Instance.new("ScreenGui",pg) sg.Name,sg.ResetOnSpawn="TKCSquareUI",false
+local mf=Instance.new("Frame",sg) mf.Name,mf.Size,mf.Position="MainFrame",UDim2.new(0,215,0,330),UDim2.new(0,-230,0.5,-165)
+mf.BackgroundColor3,mf.BorderSizePixel,mf.ZIndex=Color3.fromRGB(10,15,10),0,10
+local mfs=Instance.new("UIStroke",mf) mfs.Thickness,mfs.Color=2,Color3.fromRGB(0,255,100)
+local mfg=Instance.new("UIGradient",mf) mfg.Transparency=NumberSequence.new{NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(0.5,1),NumberSequenceKeypoint.new(1,0)}
+task.spawn(function() while task.wait(0.02) do mfg.Rotation=(mfg.Rotation+6)%360 end end)
+
+local ob=Instance.new("TextButton",sg) ob.Name,ob.Size,ob.Position="OpenButton",UDim2.new(0,32,0,45),UDim2.new(0,0,0.5,-22.5)
+ob.BackgroundColor3,ob.BorderSizePixel,ob.BorderColor3,ob.Text,ob.TextColor3,ob.TextSize,ob.Font,ob.ZIndex=Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),">",Color3.fromRGB(0,255,100),20,Enum.Font.GothamBold,100
+
+local tb=Instance.new("Frame",mf) tb.Size,tb.BackgroundTransparency,tb.ZIndex=UDim2.new(1,0,0,28),1,11
+local tl=Instance.new("TextLabel",tb) tl.Size,tl.Position,tl.BackgroundTransparency,tl.Text,tl.TextColor3,tl.TextSize,tl.Font,tl.TextXAlignment,tl.ZIndex=UDim2.new(1,-30,1,0),UDim2.new(0,6,0,0),1,"TKC",Color3.fromRGB(255,255,255),15,Enum.Font.GothamBold,Enum.TextXAlignment.Left,11
+local tg=Instance.new("UIGradient",tl) tg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(0,255,100)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,0,0))} tg.Rotation=90
+local cb=Instance.new("TextButton",tb) cb.Size,cb.Position,cb.BackgroundColor3,cb.BorderSizePixel,cb.BorderColor3,cb.Text,cb.TextColor3,cb.TextSize,cb.Font,cb.ZIndex=UDim2.new(0,20,0,20),UDim2.new(1,-23,0,4),Color3.fromRGB(20,35,20),1,Color3.fromRGB(0,255,100),"x",Color3.fromRGB(0,255,100),12,Enum.Font.GothamBold,11
+
+local tnc=Instance.new("Frame",mf) tnc.Size,tnc.Position,tnc.BackgroundColor3,tnc.BorderSizePixel,tnc.BorderColor3,tnc.ZIndex=UDim2.new(1,-12,0,24),UDim2.new(0,6,0,30),Color3.fromRGB(15,22,15),1,Color3.fromRGB(0,255,100),11
+local ul=Instance.new("UIListLayout",tnc) ul.FillDirection,ul.HorizontalAlignment,ul.VerticalAlignment,ul.SortOrder=Enum.FillDirection.Horizontal,Enum.HorizontalAlignment.Center,Enum.VerticalAlignment.Center,Enum.SortOrder.LayoutOrder
+local tNames={"Home","Info","Groups","Friends","Credits"} local tBtns,tPages={},{}
+local function cTabBtn(n,o) local b=Instance.new("TextButton",tnc) b.Name,b.Size,b.BackgroundTransparency,b.Text,b.TextColor3,b.TextSize,b.Font,b.ZIndex,b.LayoutOrder=n.."TabBtn",UDim2.new(0.2,0,1,0),1,n,Color3.fromRGB(100,160,120),8,Enum.Font.GothamBold,11,o return b end
+local cc=Instance.new("Frame",mf) cc.Size,cc.Position,cc.BackgroundTransparency,cc.ZIndex=UDim2.new(1,-12,1,-64),UDim2.new(0,6,0,58),1,11
+local function cPage(n) local p=Instance.new("ScrollingFrame",cc) p.Name,p.Size,p.BackgroundTransparency,p.BorderSizePixel,p.ScrollBarThickness,p.CanvasSize,p.Visible,p.ZIndex=n.."Page",UDim2.new(1,0,1,0),1,0,2,UDim2.new(0,0,0,2500),false,11 return p end
+for _,n in ipairs(tNames) do tBtns[n]=cTabBtn(n,_) tPages[n]=cPage(n) end
+tPages["Home"].Visible,tBtns["Home"].TextColor3=true,Color3.fromRGB(0,255,100)
+local function swTab(s) for _,n in ipairs(tNames) do tPages[n].Visible=(n==s) tBtns[n].TextColor3=(n==s) and Color3.fromRGB(0,255,100) or Color3.fromRGB(100,160,120) end end
+for _,n in ipairs(tNames) do tBtns[n].MouseButton1Click:Connect(function() swTab(n) end) end
+
+local uGrp,uFrd,uInf
+local hl=Instance.new("UIListLayout",tPages["Home"]) hl.SortOrder,hl.Padding,hl.HorizontalAlignment=Enum.SortOrder.LayoutOrder,UDim.new(0,6),Enum.HorizontalAlignment.Center
+local tp=lp
+
+local b1=Instance.new("Frame",tPages["Home"]) b1.Size,b1.BackgroundColor3,b1.BorderSizePixel,b1.BorderColor3,b1.ZIndex=UDim2.new(1,-4,0,46),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local b1A=Instance.new("ImageLabel",b1) b1A.Size,b1A.Position,b1A.BackgroundTransparency,b1A.BorderSizePixel,b1A.ZIndex=UDim2.new(0,36,0,36),UDim2.new(0,5,0.5,-18),1,0,12
+local b1T=Instance.new("TextLabel",b1) b1T.Size,b1T.Position,b1T.BackgroundTransparency,b1T.Text,b1T.TextColor3,b1T.TextSize,b1T.Font,b1T.TextXAlignment,b1T.TextYAlignment,b1T.ZIndex=UDim2.new(1,-46,1,0),UDim2.new(0,44,0,0),1,"Loading...",Color3.fromRGB(0,255,100),8,Enum.Font.GothamMedium,Enum.TextXAlignment.Left,Enum.TextYAlignment.Center,12
+
+local function updB1(p)
+if not p then return end
+local s,c=pcall(function() return P:GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size420x420) end)
+b1A.Image=s and c or ""
+b1T.Text=string.format("Name: %s\nJoined: ~%d days ago\nID: %d",p.Name,p.AccountAge,p.UserId)
+if uGrp then uGrp(p) end
+if uFrd then uFrd(p) end
+if uInf then uInf(p) end
+end
+
+local b2=Instance.new("Frame",tPages["Home"]) b2.Size,b2.BackgroundColor3,b2.BorderSizePixel,b2.BorderColor3,b2.ZIndex=UDim2.new(1,-4,0,35),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local ni=Instance.new("TextBox",b2) ni.Size,ni.Position,ni.BackgroundColor3,ni.BorderSizePixel,ni.BorderColor3,ni.Text,ni.PlaceholderText,ni.TextColor3,ni.PlaceholderColor3,ni.TextSize,ni.Font,ni.ZIndex=UDim2.new(0.65,-4,1,-6),UDim2.new(0,3,0,3),Color3.fromRGB(10,18,10),1,Color3.fromRGB(0,255,100),"","Enter Username",Color3.fromRGB(0,255,100),Color3.fromRGB(80,130,90),9,Enum.Font.GothamMedium,12
+local fb=Instance.new("TextButton",b2) fb.Size,fb.Position,fb.BackgroundColor3,fb.BorderSizePixel,fb.BorderColor3,fb.Text,fb.TextColor3,fb.TextSize,fb.Font,fb.ZIndex=UDim2.new(0.35,-4,1,-6),UDim2.new(0.65,2,0,3),Color3.fromRGB(20,35,20),1,Color3.fromRGB(0,255,100),"Find",Color3.fromRGB(0,255,100),9,Enum.Font.GothamBold,12
+fb.MouseButton1Click:Connect(function() local q=ni.Text:lower() for _,p in ipairs(P:GetPlayers()) do if p.Name:lower():sub(1,#q)==q or p.DisplayName:lower():sub(1,#q)==q then tp=p updB1(tp) break end end end)
+
+local bs=Instance.new("Frame",tPages["Home"]) bs.Size,bs.BackgroundColor3,bs.BorderSizePixel,bs.BorderColor3,bs.ZIndex=UDim2.new(1,-4,0,52),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local sit=Instance.new("TextLabel",bs) sit.Size,sit.Position,sit.BackgroundTransparency,sit.Text,sit.TextColor3,sit.TextSize,sit.Font,sit.TextXAlignment,sit.TextYAlignment,sit.ZIndex=UDim2.new(1,-6,1,-4),UDim2.new(0,3,0,2),1,"Game: Loading...\nServer ID: Loading...\nPlayers (Server): 0\nPlayers (Global): Loading...",Color3.fromRGB(0,255,100),8,Enum.Font.Code,Enum.TextXAlignment.Left,Enum.TextYAlignment.Top,12
+task.spawn(function() local gn="Unknown" pcall(function() local i=M:GetProductInfo(game.PlaceId) if i and i.Name then gn=i.Name end end) while task.wait(3) do local pc=#P:GetPlayers() local sid=tostring(game.JobId) if sid=="" then sid="Studio" else sid=sid:sub(1,8).."..." end local gc="N/A" local ss,res=pcall(function() return game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):GetAsync("https://games.roblox.com/v1/games?universeIds="..game.GameId)) end) if ss and res and res.data and res.data[1] then gc=tostring(res.data[1].playing or "Unknown") end sit.Text=string.format("Game: %s\nServer ID: %s\nPlayers (Server): %d\nPlayers (Global): %s",gn,sid,pc,gc) end end)
+
+local b3=Instance.new("Frame",tPages["Home"]) b3.Size,b3.BackgroundColor3,b3.BorderSizePixel,b3.BorderColor3,b3.ZIndex=UDim2.new(1,-4,0,30),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local gb=Instance.new("TextButton",b3) gb.Size,gb.Position,gb.BackgroundColor3,gb.BorderSizePixel,gb.BorderColor3,gb.Text,gb.TextColor3,gb.TextSize,gb.Font,gb.ZIndex=UDim2.new(1,-6,1,-6),UDim2.new(0,3,0,3),Color3.fromRGB(20,35,20),1,Color3.fromRGB(0,255,100),"Goto Player (Locate)",Color3.fromRGB(0,255,100),9,Enum.Font.GothamBold,12
+gb.MouseButton1Click:Connect(function() if tp and tp.Character and tp.Character:FindFirstChild("HumanoidRootPart") then local mc=lp.Character if mc and mc:FindFirstChild("HumanoidRootPart") then mc.HumanoidRootPart.CFrame=tp.Character.HumanoidRootPart.CFrame+Vector3.new(0,3,0) end end end)
+
+local b4=Instance.new("Frame",tPages["Home"]) b4.Size,b4.BackgroundColor3,b4.BorderSizePixel,b4.BorderColor3,b4.ZIndex=UDim2.new(1,-4,0,90),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local inv=Instance.new("TextLabel",b4) inv.Size,inv.Position,inv.BackgroundTransparency,inv.BorderSizePixel,inv.BorderColor3,inv.Text,inv.TextColor3,inv.TextSize,inv.Font,inv.TextXAlignment,inv.TextYAlignment,inv.ZIndex=UDim2.new(1,-6,1,-4),UDim2.new(0,3,0,2),Color3.fromRGB(10,18,10),1,Color3.fromRGB(0,255,100)," [Inventory]\n- Scanning...",Color3.fromRGB(120,220,140),8,Enum.Font.Code,Enum.TextXAlignment.Left,Enum.TextYAlignment.Top,12
+task.spawn(function() while task.wait(1) do if tp and tp.Character then local its={} if tp:FindFirstChild("Backpack") then for _,i in ipairs(tp.Backpack:GetChildren()) do table.insert(its,"- "..i.Name) end end for _,i in ipairs(tp.Character:GetChildren()) do if i:IsA("Tool") then table.insert(its,"- "..i.Name.." (Eq)") end end inv.Text=#its>0 and " [Inventory]\n"..table.concat(its,"\n") or " [Inventory]\n- None" end end end)
+
+local iLayout=Instance.new("UIListLayout",tPages["Info"]) iLayout.SortOrder,iLayout.Padding,iLayout.HorizontalAlignment=Enum.SortOrder.LayoutOrder,UDim.new(0,6),Enum.HorizontalAlignment.Center
+local iCard=Instance.new("Frame",tPages["Info"]) iCard.Size,iCard.BackgroundColor3,iCard.BorderSizePixel,iCard.BorderColor3,iCard.ZIndex=UDim2.new(1,-4,0,155),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local iImg=Instance.new("ImageLabel",iCard) iImg.Size,iImg.Position,iImg.BackgroundTransparency,iImg.BorderSizePixel,iImg.ZIndex=UDim2.new(0,50,0,50),UDim2.new(0,8,0,8),1,0,12
+local iText=Instance.new("TextLabel",iCard) iText.Size,iText.Position,iText.BackgroundTransparency,iText.Text,iText.TextColor3,iText.TextSize,iText.Font,iText.TextXAlignment,iText.TextYAlignment,iText.ZIndex=UDim2.new(1,-65,1,0),UDim2.new(0,64,0,0),1,"Loading...",Color3.fromRGB(0,255,100),7.5,Enum.Font.Code,Enum.TextXAlignment.Left,Enum.TextYAlignment.Center,12
+
+uInf=function(p)
+local s,c=pcall(function() return P:GetUserThumbnailAsync(p.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size420x420) end)
+iImg.Image=s and c or ""
+local dateStr=os.date("%m/%d/%Y",os.time()-(p.AccountAge*86400))
+local rx="Hidden/Private"
+pcall(function() if p==lp then rx=tostring(game:GetService("MarketplaceService"):GetRobuxBalance()) end end)
+local desc="None / Hidden"
+local req=request or http_request or (syn and syn.request) or (http and http.request)
+if req then
+pcall(function()
+local res=req({Url="https://users.roproxy.com/v1/users/"..p.UserId,Method="GET"})
+if res and res.Body then
+local data=game:GetService("HttpService"):JSONDecode(res.Body)
+if data and data.description then desc=data.description=="" and "None" or data.description end
+end end)
+end
+iText.Text=string.format("Name: %s\nJoin Date: %s\nLast Onlined: Active Now\nTotal Robux: %s\nDescription: %s\nTotal Passes: N/A\nPast Username: None",p.Name,dateStr,rx,desc)
+end
+uInf(tp)
+
+local gLayout=Instance.new("UIListLayout",tPages["Groups"]) gLayout.SortOrder,gLayout.Padding,gLayout.HorizontalAlignment=Enum.SortOrder.LayoutOrder,UDim.new(0,6),Enum.HorizontalAlignment.Center
+local gSearch=Instance.new("TextBox",tPages["Groups"]) gSearch.Size,gSearch.BackgroundColor3,gSearch.BorderSizePixel,gSearch.BorderColor3,gSearch.Text,gSearch.PlaceholderText,gSearch.TextColor3,gSearch.PlaceholderColor3,gSearch.TextSize,gSearch.Font,gSearch.ZIndex=UDim2.new(1,-4,0,26),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),"","Search group name...",Color3.fromRGB(0,255,100),Color3.fromRGB(80,130,90),9,Enum.Font.GothamMedium,12
+local gContainer=Instance.new("Frame",tPages["Groups"]) gContainer.Size,gContainer.BackgroundTransparency,gContainer.ZIndex=UDim2.new(1,-4,0,1),1,12
+local gContLayout=Instance.new("UIListLayout",gContainer) gContLayout.SortOrder,gContLayout.Padding=Enum.SortOrder.LayoutOrder,UDim.new(0,4)
+local cGrp={}
+local function renderGroups(filter)
+for _,v in ipairs(gContainer:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
+local cnt=0
+for _,g in ipairs(cGrp) do
+if filter=="" or g.Name:lower():find(filter:lower()) then
+cnt=cnt+1
+local fr=Instance.new("Frame",gContainer) fr.Size,fr.BackgroundColor3,fr.BorderSizePixel,fr.BorderColor3,fr.ZIndex=UDim2.new(1,0,0,38),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local img=Instance.new("ImageLabel",fr) img.Size,img.Position,img.BackgroundTransparency,img.BorderSizePixel,img.ZIndex=UDim2.new(0,30,0,30),UDim2.new(0,4,0.5,-15),1,0,12
+local s,c=pcall(function() return game:GetService("GroupService"):GetGroupInfoAsync(g.Id) end) if s and c and c.EmblemUrl then img.Image=c.EmblemUrl end
+local tx=Instance.new("TextLabel",fr) tx.Size,tx.Position,tx.BackgroundTransparency,tx.Text,tx.TextColor3,tx.TextSize,tx.Font,tx.TextXAlignment,tx.TextYAlignment,tx.ZIndex=UDim2.new(1,-40,1,0),UDim2.new(0,38,0,0),1,string.format("Group: %s\nRank: %s (%d)",g.Name,g.Role,g.Rank),Color3.fromRGB(0,255,100),8,Enum.Font.Code,Enum.TextXAlignment.Left,Enum.TextYAlignment.Center,12
+end end gContainer.Size=UDim2.new(1,-4,0,cnt*42) end
+gSearch:GetPropertyChangedSignal("Text"):Connect(function() renderGroups(gSearch.Text) end)
+uGrp=function(p) task.spawn(function() cGrp={} pcall(function() for _,g in ipairs(game:GetService("GroupService"):GetGroupsAsync(p.UserId) or {}) do table.insert(cGrp,{Name=g.Name,Rank=g.Rank,Role=g.Role,Id=g.Id}) end end) table.sort(cGrp,function(a,b) return a.Rank>b.Rank end) renderGroups(gSearch.Text) end) end
+
+local fLayout=Instance.new("UIListLayout",tPages["Friends"]) fLayout.SortOrder,fLayout.Padding,fLayout.HorizontalAlignment=Enum.SortOrder.LayoutOrder,UDim.new(0,6),Enum.HorizontalAlignment.Center
+local fSearch=Instance.new("TextBox",tPages["Friends"]) fSearch.Size,fSearch.BackgroundColor3,fSearch.BorderSizePixel,fSearch.BorderColor3,fSearch.Text,fSearch.PlaceholderText,fSearch.TextColor3,fSearch.PlaceholderColor3,fSearch.TextSize,fSearch.Font,fSearch.ZIndex=UDim2.new(1,-4,0,26),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),"","Search friend name...",Color3.fromRGB(0,255,100),Color3.fromRGB(80,130,90),9,Enum.Font.GothamMedium,12
+local fContainer=Instance.new("Frame",tPages["Friends"]) fContainer.Size,fContainer.BackgroundTransparency,fContainer.ZIndex=UDim2.new(1,-4,0,1),1,12
+local fContLayout=Instance.new("UIListLayout",fContainer) fContLayout.SortOrder,fContLayout.Padding=Enum.SortOrder.LayoutOrder,UDim.new(0,4)
+local cFrd={}
+local function renderFriends(filter)
+for _,v in ipairs(fContainer:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
+local cnt=0
+for _,f in ipairs(cFrd) do
+if filter=="" or f.Username:lower():find(filter:lower()) then
+cnt=cnt+1
+local fr=Instance.new("Frame",fContainer) fr.Size,fr.BackgroundColor3,fr.BorderSizePixel,fr.BorderColor3,fr.ZIndex=UDim2.new(1,0,0,45),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12
+local img=Instance.new("ImageLabel",fr) img.Size,img.Position,img.BackgroundTransparency,img.BorderSizePixel,img.ZIndex=UDim2.new(0,36,0,36),UDim2.new(0,4,0.5,-18),1,0,12
+local s,c=pcall(function() return P:GetUserThumbnailAsync(f.Id,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size420x420) end) img.Image=s and c or ""
+local tx=Instance.new("TextLabel",fr) tx.Size,tx.Position,tx.BackgroundTransparency,tx.Text,tx.TextColor3,tx.TextSize,tx.Font,tx.TextXAlignment,tx.TextYAlignment,tx.ZIndex=UDim2.new(1,-46,1,0),UDim2.new(0,44,0,0),1,string.format("Name: %s (ID:%d)\nStatus: %s",f.Username,f.Id,f.Status),Color3.fromRGB(0,255,100),8,Enum.Font.Code,Enum.TextXAlignment.Left,Enum.TextYAlignment.Center,12
+end end fContainer.Size=UDim2.new(1,-4,0,cnt*49) end
+fSearch:GetPropertyChangedSignal("Text"):Connect(function() renderFriends(fSearch.Text) end)
+uFrd=function(p) task.spawn(function() cFrd={} local count=0 pcall(function() local po=P:GetFriendsAsync(p.UserId) while true do for _,f in ipairs(po:GetCurrentPage()) do count=count+1 local lp2=P:GetPlayerByUserId(f.Id) table.insert(cFrd,{Username=f.Username,Id=f.Id,Status=lp2 and "Online" or "Offline"}) end if po.IsFinished or count>25 then break else po:AdvanceToNextPageAsync() end end end) renderFriends(fSearch.Text) end) end
+
+local cl=Instance.new("UIListLayout",tPages["Credits"]) cl.SortOrder,cl.Padding,cl.HorizontalAlignment=Enum.SortOrder.LayoutOrder,UDim.new(0,6),Enum.HorizontalAlignment.Center
+local function addCr(nm,role) local cf=Instance.new("Frame",tPages["Credits"]) cf.Size,cf.BackgroundColor3,cf.BorderSizePixel,cf.BorderColor3,cf.ZIndex=UDim2.new(1,-4,0,35),Color3.fromRGB(15,25,15),1,Color3.fromRGB(0,255,100),12 local ct=Instance.new("TextLabel",cf) ct.Size,ct.Position,ct.BackgroundTransparency,ct.Text,ct.TextColor3,ct.TextSize,ct.Font,ct.TextXAlignment,ct.ZIndex=UDim2.new(1,0,1,0),UDim2.new(0,6,0,0),1,nm.."\n("..role..")",Color3.fromRGB(0,255,100),9,Enum.Font.GothamBold,Enum.TextXAlignment.Left,12 end
+addCr("Masti","Developer / Owner")
+
+local isOpen=false local ti=TweenInfo.new(0.25,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
+local function tgl(o)
+isOpen=o
+if isOpen then
+ob.Visible=false
+T:Create(mf,ti,{Position=UDim2.new(0,12,0.5,-165)}):Play()
+else
+local so=T:Create(mf,ti,{Position=UDim2.new(0,-230,0.5,-165)})
+so:Play()
+so.Completed:Connect(function() if not isOpen then ob.Visible=true end end)
+end
+end
+ob.MouseButton1Click:Connect(function() tgl(true) end) cb.MouseButton1Click:Connect(function() tgl(false) end)
